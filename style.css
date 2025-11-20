@@ -5,7 +5,8 @@
 
 canvas {
   /* border: 1px solid #d3d3d3; */
-  background-color: #1f1f1f;
+  /* background-color: #1f1f1f; */
+  background: url("img/background.png") no-repeat center/cover;
   /* width: 100%; */
   /* height: 100%; */
 }
