@@ -1,33 +1,105 @@
-* {
-  margin: 0;
-  padding: 0;
+/* ============================
+   ========== START MENU =======
+   ============================ */
+
+body {
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(180deg, #4da6ff, #0066cc);
+    font-family: 'VT323', monospace;
+    overflow: hidden;
 }
 
-canvas {
-  /* border: 1px solid #d3d3d3; */
-  background-color: #1f1f1f;
-  /* width: 100%; */
-  /* height: 100%; */
-}
-
-.screen-wrapper {
-  margin: 0;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
+/* Screen (canvas container) */
 .screen {
-  width: fit-content;
-  /* aspect-ratio: 1; */
-  border-color: black;
-  border-radius: 2px;
-  border-width: 2px;
-  border-style: dashed;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    width: 720px;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+}
 
-  max-height: 80vh;
+/* MENU */
+#menu {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.8s ease-out;
+}
+
+#menu.active {
+    display: flex;
+}
+
+/* Title */
+.menu-title {
+    font-family: "Press Start 2P", cursive;
+    font-size: 40px;
+    color: white;
+    text-shadow: 3px 3px 0 #003366, 6px 6px 0 #002244;
+    margin-bottom: 40px;
+    letter-spacing: 2px;
+}
+
+/* Buttons */
+.menu-btn {
+    font-family: "VT323", monospace;
+    font-size: 32px;
+    margin: 12px 0;
+    padding: 12px 24px;
+    width: 260px;
+    text-align: center;
+    color: white;
+
+    background: #0033aa;
+    border: 3px solid white;
+    border-radius: 12px;
+    cursor: pointer;
+
+    transition: 0.25s;
+}
+
+.menu-btn:hover {
+    background: #0055ff;
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 10px white);
+}
+
+/* Fade animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* GAME OVER */
+#gameOver {
+    position: absolute;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.65);
+    color: white;
+    font-family: "Press Start 2P";
+
+    animation: fadeIn 0.5s ease-out;
+}
+
+#gameOver button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-family: "VT323";
+    font-size: 30px;
+    background: #0033aa;
+    color: white;
+    border-radius: 10px;
 }

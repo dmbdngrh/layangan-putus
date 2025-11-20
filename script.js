@@ -1,79 +1,135 @@
-window.onload = startGame;
-// const wrapper = screen.parentElement;
+window.onload = startMenu;
 
+// Audio (gunakan path folder assets)
+const bgm = new Audio("assets/music.mp3");
+const sfxButton = new Audio("assets/SFXbutton.mp3");
+
+// Classes
 class GameArea {
-  constructor(canvasWidth, canvasHeight) {
-    this.screen = document.querySelector(".screen");
-    this.canvas = document.createElement("canvas");
-    this.context = this.canvas.getContext("2d");
-    this.canvasWidth = canvasWidth;
-    this.canvasHeight = canvasHeight;
-  }
+    constructor(w, h) {
+        this.screen = document.querySelector(".screen");
+        this.canvas = document.createElement("canvas");
+        this.context = this.canvas.getContext("2d");
+        this.canvas.width = w;
+        this.canvas.height = h;
+        this.screen.appendChild(this.canvas);
 
-  start() {
-    this.canvas.width = this.canvasWidth;
-    this.canvas.height = this.canvasHeight;
-    this.screen.prepend(this.canvas);
-  }
+        this.bg = new Image();
+        this.bg.src = "assets/background.jpg";   // FIXED
 
-  clear() {
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-  }
+        this.bgX = 0;
+    }
+
+    clear() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    drawBackground() {
+        this.context.drawImage(this.bg, this.bgX, 0, this.canvas.width, this.canvas.height);
+        this.context.drawImage(this.bg, this.bgX + this.canvas.width, 0, this.canvas.width, this.canvas.height);
+
+        this.bgX -= 1;
+        if (this.bgX <= -this.canvas.width) this.bgX = 0;
+    }
 }
 
 class Kite {
-  constructor(x, y, img) {
-    this.x = x;
-    this.y = y;
-    this.width = 48;
-    this.height = 48;
-    this.color = "red";
+    constructor() {
+        this.img = new Image();
+        this.img.src = "assets/kite.png";   // FIXED
 
-    window.addEventListener("keydown", (e) => (this.keys[e.key] = true));
-    window.addEventListener("keydown", (e) => (this.keys[e.key] = false));
-  }
+        this.x = 150;
+        this.y = 200;
+        this.speed = 0;
+        this.gravity = 0.4;
+        this.jumpPower = -7;
 
-  update() {
-    const context = gameArea.context;
-    context.fillStyle = this.color;
-    context.fillRect(this.x, this.y, this.width, this.height);
-  }
+        window.addEventListener("keydown", e => {
+            if (e.key === " " || e.key === "w" || e.key === "ArrowUp") {
+                this.speed = this.jumpPower;
+            }
+        });
+    }
 
-  handleInput() {}
+    update() {
+        this.speed += this.gravity;
+        this.y += this.speed;
+
+        gameArea.context.drawImage(this.img, this.x, this.y, 50, 50);
+    }
 }
 
-let kite;
-let obstacles;
-
-let score;
-let previousTime;
-
+// GAME VARIABLES
 let gameArea;
+let kite;
+let obstacles = [];
+let score = 0;
+let previousTime = 0;
 const canvasWidth = 720;
 const canvasHeight = 480;
 
-function startGame() {
-  init();
-  gameArea.start();
-  requestAnimationFrame(gameLoop);
+// MENU
+function startMenu() {
+    document.getElementById("menu").classList.add("active");
+    bgm.volume = 0.4;
+    bgm.loop = true;
 }
 
-function init() {
-  previousTime = 0;
-  score = 0;
-  gameArea = new GameArea(canvasWidth, canvasHeight);
-  kite = new Kite((canvasWidth - 48) / 2, (canvasHeight - 48) / 2);
+// PLAY GAME
+function playGame() {
+    sfxButton.play();
+
+    document.getElementById("menu").classList.remove("active");
+
+    gameArea = new GameArea(canvasWidth, canvasHeight);
+    kite = new Kite();
+    score = 0;
+
+    bgm.play();
+
+    requestAnimationFrame(gameLoop);
 }
 
+// UPDATE
 function update(deltaTime) {
-  gameArea.clear();
-  kite.update();
+    gameArea.clear();
+    gameArea.drawBackground();
+    kite.update();
 }
 
+// GAME LOOP
 function gameLoop(time) {
-  const deltaTime = (time - previousTime) / 1000;
-  previousTime = time;
-  update(deltaTime);
-  //render;
-  if (time < 10000) requestAnimationFrame(gameLoop);
+    const deltaTime = (time - previousTime) / 1000;
+    previousTime = time;
+
+    update(deltaTime);
+
+    requestAnimationFrame(gameLoop);
+}
+
+// GAME OVER SCREEN
+function showGameOver() {
+    document.getElementById("finalScore").textContent = score;
+    document.getElementById("gameOver").style.display = "flex";
+    bgm.pause();
+}
+
+function restartGame() {
+    sfxButton.play();
+    location.reload();
+}
+
+function returnMenu() {
+    sfxButton.play();
+    location.reload();
+}
+
+// MOCK FUNCTIONS
+function showLeaderboard() {
+    alert("Leaderboard belum dibuat (mock UI).");
+}
+
+function exitGame() {
+    sfxButton.play();
+    alert("Exit Game (mock).");
 }
