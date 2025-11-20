@@ -1,6 +1,3 @@
-// window.onload = startGame;
-// const wrapper = screen.parentElement;
-
 class GameArea {
   constructor(canvasWidth, canvasHeight) {
     this.screen = document.querySelector(".screen");
@@ -66,9 +63,13 @@ class Kite {
   update() {
     const context = gameArea.context;
 
+    this.collX = this.x;
+    this.collY = this.y + this.height / 8;
+    this.collWidth = this.width;
+    this.collHeight = this.height - this.height / 3;
     context.fillStyle = this.color;
     context.drawImage(this.img, this.x - this.width / 2, this.y - this.height / 2, this.width * 2, this.height * 2);
-    context.fillRect(this.x, this.y, this.width, this.height);
+    context.fillRect(this.collX, this.collY, this.collWidth, this.collHeight);
   }
 
   jump() {
@@ -77,62 +78,116 @@ class Kite {
   }
 
   movement(deltaTime, time) {
-    if (gameStarted) {
-      if (this.keys["ArrowDown"] && this.pressTime === "waiting") {
-        this.pressTime = time / 1000;
-      }
-
-      if (this.isReleased) {
-        const heldTime = time / 1000 - this.pressTime;
-        // console.log(heldTime, "PRESS TIME");
-        if (heldTime < this.launchTreshold) {
-          this.jump();
-        } else this.impulse = 200;
-
-        this.pressTime = undefined;
-        this.isReleased = false;
-      }
-
-      if (this.keys["ArrowDown"]) {
-        this.accelerationY = 300; // slow drag force
-      } else {
-        this.accelerationY = 0;
-      }
-
-      this.speedY += this.impulse * deltaTime;
-      this.impulse *= 0.3; // decay impulse
-
-      this.speedY += this.accelerationY * deltaTime;
-
-      // console.log(this.speedY, this.impulse);
-      this.speedY += this.gravity * deltaTime;
-      // this.speedY += this.accelerationY * deltaTime;
-
-      this.y += this.speedY * deltaTime;
+    if (this.keys["ArrowDown"] && this.pressTime === "waiting") {
+      this.pressTime = time / 1000;
     }
+
+    if (this.isReleased) {
+      const heldTime = time / 1000 - this.pressTime;
+      // console.log(heldTime, "PRESS TIME");
+      if (heldTime < this.launchTreshold) {
+        this.jump();
+      } else this.impulse = 200;
+
+      this.pressTime = undefined;
+      this.isReleased = false;
+    }
+
+    if (this.keys["ArrowDown"]) {
+      this.accelerationY = 300; // slow drag force
+    } else {
+      this.accelerationY = 0;
+    }
+
+    this.speedY += this.impulse * deltaTime;
+    this.impulse *= 0.3; // decay impulse
+
+    this.speedY += this.accelerationY * deltaTime;
+
+    // console.log(this.speedY, this.impulse);
+    this.speedY += this.gravity * deltaTime;
+    // this.speedY += this.accelerationY * deltaTime;
+
+    this.y += this.speedY * deltaTime;
   }
 
-  handleInput() {}
+  reset() {
+    this.x = canvasWidth / 8;
+    this.y = (canvasHeight - 64) / 2;
+    this.accelerationX = 0;
+    this.speedY = 0;
+    this.accelerationY = 0;
+    this.impulse = 0;
+    this.isReleased = false;
+  }
 }
 
-class Bird {}
+class Bird {
+  constructor(x, y, speed, size, img) {
+    this.x = x;
+    this.y = y;
+    this.speed = speed;
+    this.width = 68 * size;
+    this.height = 38 * size;
+    this.size = size;
+    this.collX;
+    this.collY;
+    this.collWidth;
+    this.collHeight;
+    this.img = img;
+  }
+
+  update() {
+    const context = gameArea.context;
+    // context.drawImage(this.img, this.x);
+    this.collX = this.x + this.width / 8;
+    this.collY = this.y + this.height / 8;
+    this.collWidth = this.width - this.width / 6;
+    this.collHeight = this.height - this.height / 3;
+    context.drawImage(this.img, this.x, this.y, this.width, this.height);
+    context.fillRect(this.collX, this.collY, this.collWidth, this.collHeight);
+  }
+
+  movement(deltaTime) {
+    this.x += this.speed * deltaTime;
+  }
+
+  isOffscreen() {
+    return this.x < -500;
+  }
+}
 
 let kite;
 let obstacles;
+let test, test2;
 
 let score;
-let previouseScoreTime;
+let timeStamp;
 let previousTime;
+let startTime;
 
 let gameArea;
-let gameStarted = false;
+let gameOver;
 const canvasWidth = 720;
 const canvasHeight = 480;
+const assets = { background: new Image(), kite: new Image(), bird: new Image() };
+let assetsLoaded = 0;
 
 function startGame() {
   hideStartMenu();
-  init();
-  gameArea.start();
+  assets.background.src = "img/background.png";
+  assets.kite.src = "img/ph-kite.png";
+  assets.bird.src = "img/bird.png";
+
+  for (const key in assets) {
+    assets[key].onload = () => {
+      assetsLoaded++;
+      if (assetsLoaded === Object.keys(assets).length) {
+        init();
+        gameArea.start();
+      }
+    };
+  }
 }
 
 function hideStartMenu() {
@@ -142,24 +197,62 @@ function hideStartMenu() {
 
 function init() {
   gameArea = new GameArea(canvasWidth, canvasHeight);
-  const kiteSprite = new Image();
-  kiteSprite.src = "img/ph-kite.png";
-  kiteSprite.onload = () => {
-    kite = new Kite(canvasWidth / 8, (canvasHeight - 64) / 2, kiteSprite);
-    gameStarted = true;
-    requestAnimationFrame(gameLoop);
-  };
+  kite = new Kite(canvasWidth / 8, (canvasHeight - 64) / 2, assets.kite);
+  // test = new Bird(canvasWidth / 2, canvasHeight / 2, -100, 1, assets.bird);
+  // test2 = new Bird(canvasWidth / 3, canvasHeight / 3, -100, 1, assets.bird);
   score = 0;
   obstacles = [];
+
+  requestAnimationFrame(gameLoop);
+}
+
+function spawnBird() {
+  const size = Math.random() * 2.3 + 0.7;
+  const y = Math.random() * (canvasHeight - size) + size;
+  const speed = 40 + Math.random() * 200;
+  console.log("BirdSpawnd");
+
+  obstacles.push(new Bird(canvasWidth, y, -speed, size, assets.bird));
+  console.log(obstacles);
+}
+
+function checkCollision(object1, object2) {
+  return (
+    object1.collX < object2.collX + object2.collWidth &&
+    object1.collX + object1.collHeight > object2.collX &&
+    object1.collY < object2.collY + object2.collHeight &&
+    object1.collY + object1.collHeight > object2.collY
+  );
 }
 
 function update(time) {
   const deltaTime = (time - previousTime) / 1000;
   previousTime = time;
 
-  if (time - previouseScoreTime >= 1000) {
-    score += 1000;
-    previouseScoreTime = time;
+  gameArea.clear();
+  kite.update();
+
+  if (time - timeStamp >= 2000) {
+    spawnBird();
+
+    score += 5000;
+    timeStamp = time;
+  }
+
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const bird = obstacles[i];
+
+    bird.movement(deltaTime);
+    bird.update();
+
+    if (checkCollision(kite, bird)) {
+      console.log("HIT!");
+      gameOverScreen();
+    }
+
+    if (bird.isOffscreen()) {
+      obstacles.splice(i, 1);
+    }
   }
 
   console.log(score);
@@ -167,19 +260,53 @@ function update(time) {
 }
 
 function render() {
+  // test.update();
+  // test2.update();
+}
+
+function gameOverScreen() {
+  const screen = document.querySelector(".start-screen");
+  if (screen) screen.style.display = "flex";
+  gameOver = true;
+}
+
+function resetGame() {
+  console.log("reset gamme");
+
+  gameOver = false;
+  obstacles = [];
+  score = 0;
+
+  previousTime = null;
+  timeStamp = null;
+
+  kite = new Kite(canvasWidth / 8, (canvasHeight - 64) / 2, assets.kite);
+
   gameArea.clear();
-  kite.update();
+  requestAnimationFrame(gameLoop);
 }
 
 function gameLoop(time) {
-  if (!gameStarted) return;
+  if (gameOver) return;
   if (!previousTime) {
+    startTime = time;
     previousTime = time;
-    previouseScoreTime = time;
+    timeStamp = time;
     kite.jump();
   }
-
   update(time);
   render();
+  // if (time - startTime > 10000) gameOver = true;
+  // console.log(time - startTime);
+
   requestAnimationFrame(gameLoop);
 }
+
+document.getElementById("start-btn").onclick = () => {
+  if (!gameOver) {
+    startGame();
+  } else {
+    hideStartMenu();
+    resetGame();
+  }
+};
