@@ -196,7 +196,6 @@ let assetsLoaded = 0;
 
 function startGame() {
   hideStartMenu();
-  showGameTutorial();
   assets.background.src = "img/background.png";
   assets.kite.src = "img/ph-kite.png";
   assets.bird.src = "img/bird.png";
@@ -218,6 +217,8 @@ function init() {
   // test = new Bird(canvasWidth / 2, canvasHeight / 2, -100, 1, assets.bird);
   // test2 = new Bird(canvasWidth / 3, canvasHeight / 3, -100, 1, assets.bird);
   name = document.getElementById("name").value;
+  showGameTutorial();
+
   console.log(name);
   if (!name) {
     name =
