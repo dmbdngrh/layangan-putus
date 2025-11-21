@@ -57,6 +57,11 @@ class Kite {
     this.keys[e.key] = false;
     if (e.key === " ") {
       this.isReleased = true;
+      if (!gameOver) {
+        sfxKite.pause();
+        sfxKite.currentTime = 0;
+        sfxKite.play();
+      }
     }
   }
 
@@ -176,11 +181,22 @@ let gameArea;
 let gameOver;
 const canvasWidth = 720;
 const canvasHeight = 480;
-const assets = { background: new Image(), kite: new Image(), bird: new Image() };
+const bgm = new Audio("sound/music.mp3");
+const sfxButton = new Audio("sound/SFXbutton.mp3");
+const sfxKite = new Audio("sound/SFXkite.mp3");
+bgm.volume = 0.05;
+sfxButton.volume = 0.1;
+sfxKite.volume = 0.1;
+const assets = {
+  background: new Image(),
+  kite: new Image(),
+  bird: new Image(),
+};
 let assetsLoaded = 0;
 
 function startGame() {
   hideStartMenu();
+  showGameTutorial();
   assets.background.src = "img/background.png";
   assets.kite.src = "img/ph-kite.png";
   assets.bird.src = "img/bird.png";
@@ -220,6 +236,8 @@ function init() {
   obstacles = [];
 
   gameArea.clear();
+  bgm.currentTime = 0;
+  bgm.play();
   requestAnimationFrame(gameLoop);
 }
 
@@ -362,6 +380,13 @@ function generateLeaderboard() {
   }
 }
 
+document.addEventListener("mouseover", (e) => {
+  if (e.target.matches(".btn") || e.target.matches(".menu-btn")) {
+    sfxButton.pause();
+    sfxButton.currentTime = 0;
+    sfxButton.play();
+  }
+});
 document.getElementById("start-btn").onclick = () => {
   if (!gameOver) {
     startGame();
@@ -372,8 +397,10 @@ document.getElementById("start-btn").onclick = () => {
 };
 
 function returnMenu() {
+  bgm.pause();
   hideEndScreen();
   hideGameScreen();
+  hideGameTutorial();
   hideLeaderboard();
   showStartMenu();
 }
@@ -418,4 +445,14 @@ function showLeaderboard() {
 function hideLeaderboard() {
   const screen = document.querySelector("#leaderboard");
   if (screen) screen.style.display = "none";
+}
+
+function hideGameTutorial() {
+  const screen = document.querySelector(".tutorial");
+  if (screen) screen.style.display = "none";
+}
+
+function showGameTutorial() {
+  const screen = document.querySelector(".tutorial");
+  if (screen) screen.style.display = "flex";
 }

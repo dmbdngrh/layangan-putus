@@ -24,6 +24,7 @@ canvas {
   margin: 0;
   height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 }
@@ -188,4 +189,12 @@ canvas {
   background: #0033aa;
   color: white;
   border-radius: 10px;
+}
+
+.tutorial {
+  display: none;
+  width: 720px;
+  color: white;
+  font-family: "VT323";
+  font-size: 32px;
 }
