@@ -1,7 +1,7 @@
 class GameArea {
   constructor(canvasWidth, canvasHeight) {
     this.screen = document.querySelector(".screen");
-    this.canvas = document.createElement("canvas");
+    this.startScreen = this.canvas = document.createElement("canvas");
     this.context = this.canvas.getContext("2d");
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
@@ -46,7 +46,7 @@ class Kite {
 
   onKeyDown(e) {
     if (!this.keys[e.key]) {
-      if (e.key === "ArrowDown") {
+      if (e.key === " ") {
         this.pressTime = "waiting";
       }
     }
@@ -55,7 +55,7 @@ class Kite {
 
   onKeyUp(e) {
     this.keys[e.key] = false;
-    if (e.key === "ArrowDown") {
+    if (e.key === " ") {
       this.isReleased = true;
     }
   }
@@ -69,7 +69,7 @@ class Kite {
     this.collHeight = this.height - this.height / 3;
     context.fillStyle = this.color;
     context.drawImage(this.img, this.x - this.width / 2, this.y - this.height / 2, this.width * 2, this.height * 2);
-    context.fillRect(this.collX, this.collY, this.collWidth, this.collHeight);
+    // context.fillRect(this.collX, this.collY, this.collWidth, this.collHeight);
   }
 
   jump() {
@@ -78,7 +78,7 @@ class Kite {
   }
 
   movement(deltaTime, time) {
-    if (this.keys["ArrowDown"] && this.pressTime === "waiting") {
+    if (this.keys[" "] && this.pressTime === "waiting") {
       this.pressTime = time / 1000;
     }
 
@@ -93,7 +93,7 @@ class Kite {
       this.isReleased = false;
     }
 
-    if (this.keys["ArrowDown"]) {
+    if (this.keys[" "]) {
       this.accelerationY = 300; // slow drag force
     } else {
       this.accelerationY = 0;
@@ -120,6 +120,10 @@ class Kite {
     this.impulse = 0;
     this.isReleased = false;
   }
+
+  isOffscreen() {
+    return this.y > canvasHeight || this.y < 0 - this.height;
+  }
 }
 
 class Bird {
@@ -145,7 +149,7 @@ class Bird {
     this.collWidth = this.width - this.width / 6;
     this.collHeight = this.height - this.height / 3;
     context.drawImage(this.img, this.x, this.y, this.width, this.height);
-    context.fillRect(this.collX, this.collY, this.collWidth, this.collHeight);
+    // context.fillRect(this.collX, this.collY, this.collWidth, this.collHeight);
   }
 
   movement(deltaTime) {
@@ -161,10 +165,12 @@ let kite;
 let obstacles;
 let test, test2;
 
+let name;
 let score;
 let timeStamp;
 let previousTime;
 let startTime;
+const leaderboard = [];
 
 let gameArea;
 let gameOver;
@@ -190,19 +196,30 @@ function startGame() {
   }
 }
 
-function hideStartMenu() {
-  const screen = document.querySelector(".start-screen");
-  if (screen) screen.style.display = "none";
-}
-
 function init() {
-  gameArea = new GameArea(canvasWidth, canvasHeight);
+  if (!gameArea) gameArea = new GameArea(canvasWidth, canvasHeight);
   kite = new Kite(canvasWidth / 8, (canvasHeight - 64) / 2, assets.kite);
   // test = new Bird(canvasWidth / 2, canvasHeight / 2, -100, 1, assets.bird);
   // test2 = new Bird(canvasWidth / 3, canvasHeight / 3, -100, 1, assets.bird);
+  name = document.getElementById("name").value;
+  console.log(name);
+  if (!name) {
+    name =
+      "Kucing" +
+      Math.ceil(Math.random() * 10) +
+      Math.ceil(Math.random() * 10) +
+      Math.ceil(Math.random() * 10) +
+      Math.ceil(Math.random() * 10);
+  }
+
+  gameOver = false;
+  previousTime = null;
+  timeStamp = null;
+
   score = 0;
   obstacles = [];
 
+  gameArea.clear();
   requestAnimationFrame(gameLoop);
 }
 
@@ -225,18 +242,38 @@ function checkCollision(object1, object2) {
   );
 }
 
+function showScore(score) {
+  const context = gameArea.context;
+  context.font = "bold 50px 'VT323'";
+  context.fillStyle = "#003366";
+  context.textAlign = "center";
+  context.fillText(score, canvasWidth / 2 + 4, 44);
+  context.font = "bold 50px 'VT323'";
+  context.fillStyle = "#003366";
+  context.textAlign = "center";
+  context.fillText(score, canvasWidth / 2 + 2, 44);
+  context.font = "bold 50px 'VT323'";
+  context.fillStyle = "White";
+  context.textAlign = "center";
+  context.fillText(score, canvasWidth / 2, 40);
+}
+
 function update(time) {
   const deltaTime = (time - previousTime) / 1000;
   previousTime = time;
 
   gameArea.clear();
   kite.update();
-
-  if (time - timeStamp >= 2000) {
+  showScore(score);
+  if (time - timeStamp >= 1000) {
     spawnBird();
 
-    score += 5000;
+    score += 100;
     timeStamp = time;
+  }
+
+  if (kite.isOffscreen()) {
+    gameOverScreen(time);
   }
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -247,7 +284,7 @@ function update(time) {
 
     if (checkCollision(kite, bird)) {
       console.log("HIT!");
-      gameOverScreen();
+      gameOverScreen(time);
     }
 
     if (bird.isOffscreen()) {
@@ -264,26 +301,32 @@ function render() {
   // test2.update();
 }
 
-function gameOverScreen() {
-  const screen = document.querySelector(".start-screen");
-  if (screen) screen.style.display = "flex";
+function gameOverScreen(time) {
+  const finalScore = document.querySelector("#finalScore");
+  const elapsedTime = document.querySelector("#elapsedTime");
+  elapsedTime.textContent = ((time - startTime) / 1000).toFixed(1);
+  finalScore.textContent = score;
+  leaderboard.push({ name: name, score: score });
+  showEndScreen();
   gameOver = true;
 }
 
 function resetGame() {
   console.log("reset gamme");
 
-  gameOver = false;
-  obstacles = [];
-  score = 0;
+  // gameOver = false;
+  // obstacles = [];
+  // score = 0;
 
-  previousTime = null;
-  timeStamp = null;
+  // previousTime = null;
+  // timeStamp = null;
 
-  kite = new Kite(canvasWidth / 8, (canvasHeight - 64) / 2, assets.kite);
+  // kite = new Kite(canvasWidth / 8, (canvasHeight - 64) / 2, assets.kite);
 
-  gameArea.clear();
-  requestAnimationFrame(gameLoop);
+  // gameArea.clear();
+  showGameScreen();
+  // requestAnimationFrame(gameLoop);
+  init();
 }
 
 function gameLoop(time) {
@@ -302,6 +345,23 @@ function gameLoop(time) {
   requestAnimationFrame(gameLoop);
 }
 
+function generateLeaderboard() {
+  leaderboard.sort((a, b) => b.score - a.score);
+  const list = document.querySelector(".leaderboard-list");
+  list.innerHTML = "";
+  for (const element of leaderboard) {
+    const item = document.createElement("div");
+    item.className = "leaderboard-item";
+
+    item.innerHTML = `
+    <span class="player-name">${element.name}</span>
+    <span class="player-score">${element.score}</span>
+    `;
+
+    list.appendChild(item);
+  }
+}
+
 document.getElementById("start-btn").onclick = () => {
   if (!gameOver) {
     startGame();
@@ -310,3 +370,52 @@ document.getElementById("start-btn").onclick = () => {
     resetGame();
   }
 };
+
+function returnMenu() {
+  hideEndScreen();
+  hideGameScreen();
+  hideLeaderboard();
+  showStartMenu();
+}
+
+function hideStartMenu() {
+  const screen = document.querySelector(".start-screen");
+  if (screen) screen.style.display = "none";
+}
+
+function showStartMenu() {
+  const screen = document.querySelector(".start-screen");
+  if (screen) screen.style.display = "flex";
+}
+
+function hideGameScreen() {
+  const screen = document.querySelector(".screen");
+  if (screen) screen.style.display = "none";
+}
+
+function showGameScreen() {
+  const screen = document.querySelector(".screen");
+  if (screen) screen.style.display = "flex";
+}
+
+function hideEndScreen() {
+  const screen = document.querySelector("#gameOver");
+  if (screen) screen.style.display = "none";
+}
+
+function showEndScreen() {
+  const screen = document.querySelector("#gameOver");
+  if (screen) screen.style.display = "flex";
+}
+
+function showLeaderboard() {
+  const screen = document.querySelector("#leaderboard");
+  if (screen) screen.style.display = "flex";
+
+  generateLeaderboard();
+}
+
+function hideLeaderboard() {
+  const screen = document.querySelector("#leaderboard");
+  if (screen) screen.style.display = "none";
+}

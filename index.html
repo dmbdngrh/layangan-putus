@@ -4,15 +4,41 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="style.css" rel="stylesheet" />
-    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+    <title>Layangan Putus</title>
   </head>
   <body>
     <div class="screen-wrapper">
       <div class="start-screen">
-        <button id="start-btn">Start Game</button>
+        <div id="menu" class="active">
+          <h1 class="menu-title">LAYANGAN PUTUS</h1>
+          <input class="menu-btn" type="text" id="name" placeholder="Input your name here" />
+          <button class="menu-btn" id="start-btn">PLAY</button>
+          <button class="menu-btn" onclick="showLeaderboard()">LEADERBOARD</button>
+          <button class="menu-btn" onclick="exitGame()">EXIT</button>
+          <div id="leaderboard">
+            <h2 class="gameOver-title">LEADERBOARD</h2>
+            <div class="leaderboard-list">
+              <div class="leaderboard-item">
+                <span class="player-name">Raja Kucing</span>
+                <span class="player-score">999999</span>
+              </div>
+            </div>
+            <button onclick="returnMenu()">MENU</button>
+          </div>
+        </div>
       </div>
-      <div class="screen"></div>
+      <div class="screen">
+        <div id="gameOver">
+          <h2 class="gameOver-title">GAME OVER</h2>
+          <p>Score: <span id="finalScore">0</span></p>
+          <p>Time: <span id="elapsedTime">0</span> s</p>
+
+          <button onclick="returnMenu()">MENU</button>
+        </div>
+      </div>
     </div>
+
     <script src="script.js"></script>
   </body>
 </html>
